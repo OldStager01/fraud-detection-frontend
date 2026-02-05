@@ -1,0 +1,146 @@
+import { useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Shield, X } from "lucide-react";
+import { cn } from "@/utils";
+import { navigationConfig, type NavItem } from "@/config";
+import { useAuth } from "@/features/auth/hooks";
+import { useAppDispatch, useAppSelector } from "@/store";
+import { setSidebarOpen } from "@/store/slices/uiSlice";
+import { Button, ScrollArea } from "@/components/ui";
+
+function NavItemComponent({
+  item,
+  onClose,
+}: {
+  item: NavItem;
+  onClose: () => void;
+}) {
+  const location = useLocation();
+  const isActive =
+    location.pathname === item.href ||
+    location.pathname.startsWith(item.href + "/");
+  const Icon = item.icon;
+
+  return (
+    <Link
+      to={item.href}
+      onClick={onClose}
+      className={cn(
+        "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+        "hover:bg-neutral-100 dark:hover:bg-neutral-800",
+        isActive
+          ? "bg-primary-50 text-primary-700 dark:bg-primary-950 dark:text-primary-300"
+          : "text-neutral-600 dark:text-neutral-400",
+      )}
+    >
+      <Icon
+        className={cn(
+          "h-5 w-5 shrink-0",
+          isActive && "text-primary-600 dark:text-primary-400",
+        )}
+      />
+      <span>{item.title}</span>
+      {item.badge && (
+        <span className="ml-auto rounded-full bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-900 dark:text-primary-300">
+          {item.badge}
+        </span>
+      )}
+    </Link>
+  );
+}
+
+export default function MobileSidebar() {
+  const { user } = useAuth();
+  const dispatch = useAppDispatch();
+  const isOpen = useAppSelector((state) => state.ui.sidebarOpen);
+  const location = useLocation();
+
+  // Close sidebar on route change
+  useEffect(() => {
+    dispatch(setSidebarOpen(false));
+  }, [location.pathname, dispatch]);
+
+  // Prevent body scroll when sidebar is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
+  const filteredNavigation = navigationConfig
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => {
+        if (!item.roles) return true;
+        return user && item.roles.includes(user.role);
+      }),
+    }))
+    .filter((section) => section.items.length > 0);
+
+  const handleClose = () => dispatch(setSidebarOpen(false));
+
+  if (!isOpen) return null;
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 z-50 bg-black/50 lg:hidden"
+        onClick={handleClose}
+      />
+
+      {/* Sidebar */}
+      <aside className="fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-neutral-900 lg:hidden animate-slide-up">
+        <div className="flex h-full flex-col">
+          {/* Header */}
+          <div className="flex h-16 items-center justify-between border-b border-neutral-200 dark:border-neutral-800 px-4">
+            <Link
+              to="/dashboard"
+              className="flex items-center gap-2"
+              onClick={handleClose}
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600">
+                <Shield className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
+                FraudGuard
+              </span>
+            </Link>
+            <Button variant="ghost" size="icon" onClick={handleClose}>
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+
+          {/* Navigation */}
+          <ScrollArea className="flex-1 px-3 py-4">
+            <nav className="space-y-6">
+              {filteredNavigation.map((section, index) => (
+                <div key={index}>
+                  {section.title && (
+                    <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+                      {section.title}
+                    </h3>
+                  )}
+                  <div className="space-y-1">
+                    {section.items.map((item) => (
+                      <NavItemComponent
+                        key={item.href}
+                        item={item}
+                        onClose={handleClose}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </nav>
+          </ScrollArea>
+        </div>
+      </aside>
+    </>
+  );
+}

@@ -5,8 +5,9 @@ const apiClient = axios.create({
   baseURL: envConfig.apiBaseUrl,
   headers: {
     "Content-Type": "application/json",
+    Accept: "application/json",
   },
-  withCredentials: true, // Required for HttpOnly cookies
+  withCredentials: true,
 });
 
 // Request interceptor

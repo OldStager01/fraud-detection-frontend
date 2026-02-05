@@ -1,6 +1,15 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AuthGuard, GuestGuard } from "@/components/common";
-import { LoginPage, RegisterPage, DashboardPage } from "@/pages";
+import { MainLayout } from "@/layouts";
+import {
+  LoginPage,
+  RegisterPage,
+  DashboardPage,
+  TransactionsPage,
+  RiskAnalysisPage,
+  SettingsPage,
+  NotFoundPage,
+} from "@/pages";
 
 export const router = createBrowserRouter([
   // Public routes (guest only)
@@ -21,25 +30,41 @@ export const router = createBrowserRouter([
     ),
   },
 
-  // Protected routes
-  {
-    path: "/dashboard",
-    element: (
-      <AuthGuard>
-        <DashboardPage />
-      </AuthGuard>
-    ),
-  },
-
-  // Redirects
+  // Protected routes with layout
   {
     path: "/",
-    element: <Navigate to="/dashboard" replace />,
+    element: (
+      <AuthGuard>
+        <MainLayout />
+      </AuthGuard>
+    ),
+    children: [
+      {
+        index: true,
+        element: <Navigate to="/dashboard" replace />,
+      },
+      {
+        path: "dashboard",
+        element: <DashboardPage />,
+      },
+      {
+        path: "transactions",
+        element: <TransactionsPage />,
+      },
+      {
+        path: "risk-analysis",
+        element: <RiskAnalysisPage />,
+      },
+      {
+        path: "settings",
+        element: <SettingsPage />,
+      },
+    ],
   },
 
-  // 404 fallback
+  // 404
   {
     path: "*",
-    element: <Navigate to="/dashboard" replace />,
+    element: <NotFoundPage />,
   },
 ]);

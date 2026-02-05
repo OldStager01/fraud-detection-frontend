@@ -1,0 +1,37 @@
+import { Outlet } from "react-router-dom";
+import { useAppSelector } from "@/store";
+import { useGlobalShortcuts } from "@/hooks";
+import { cn } from "@/utils";
+import { Sidebar, Header, MobileSidebar } from "./components";
+
+export default function MainLayout() {
+  const sidebarCollapsed = useAppSelector((state) => state.ui.sidebarCollapsed);
+
+  // Register global keyboard shortcuts
+  useGlobalShortcuts();
+
+  return (
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block">
+        <Sidebar />
+      </div>
+
+      {/* Mobile Sidebar */}
+      <MobileSidebar />
+
+      {/* Main Content */}
+      <div
+        className={cn(
+          "transition-all duration-300",
+          sidebarCollapsed ? "lg:pl-16" : "lg:pl-64",
+        )}
+      >
+        <Header />
+        <main className="p-4 md:p-6 lg:p-8">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+}
