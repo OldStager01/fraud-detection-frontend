@@ -138,3 +138,13 @@
     transform: translateX(0);
   }
 }
+
+:root {
+  --tooltip-bg: #ffffff;
+  --tooltip-border: #e5e5e5;
+}
+
+.dark {
+  --tooltip-bg: #171717;
+  --tooltip-border: #404040;
+}
