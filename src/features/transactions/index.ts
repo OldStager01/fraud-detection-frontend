@@ -1,6 +1,32 @@
+// API
 export { transactionsApi, type TransactionFilters } from "./api";
+
+// Hooks
 export {
   useTransactions,
   useDashboardStats,
   TRANSACTIONS_QUERY_KEY,
+  useCreateTransaction,
+  useSubmitFeedback,
 } from "./hooks";
+
+// Components
+export {
+  TransactionFilters as TransactionFiltersComponent,
+  TransactionTable,
+  Pagination,
+  CreateTransactionDialog,
+  TransactionDetailsDialog,
+  FeedbackDialog,
+} from "./components";
+
+// Schemas
+export {
+  createTransactionSchema,
+  feedbackSchema,
+  type CreateTransactionFormData,
+  type FeedbackFormData,
+} from "./schemas";
+
+// Utils
+export { exportToCSV, generatePDFReport } from "./utils";

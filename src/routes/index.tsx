@@ -1,5 +1,5 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
-import { AuthGuard, GuestGuard } from "@/components/common";
+import { AuthGuard, GuestGuard, RoleGuard } from "@/components/common";
 import { MainLayout } from "@/layouts";
 import {
   LoginPage,
@@ -9,6 +9,8 @@ import {
   RiskAnalysisPage,
   SettingsPage,
   NotFoundPage,
+  UsersPage,
+  AuditLogsPage,
 } from "@/pages";
 
 export const router = createBrowserRouter([
@@ -52,12 +54,33 @@ export const router = createBrowserRouter([
         element: <TransactionsPage />,
       },
       {
+        path: "transactions/new",
+        element: <TransactionsPage />,
+      },
+      {
         path: "risk-analysis",
         element: <RiskAnalysisPage />,
       },
       {
         path: "settings",
         element: <SettingsPage />,
+      },
+      // Admin routes
+      {
+        path: "admin/users",
+        element: (
+          <RoleGuard allowedRoles={["admin", "manager"]}>
+            <UsersPage />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "admin/audit-logs",
+        element: (
+          <RoleGuard allowedRoles={["admin"]}>
+            <AuditLogsPage />
+          </RoleGuard>
+        ),
       },
     ],
   },

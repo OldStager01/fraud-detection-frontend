@@ -3,7 +3,7 @@ export interface ApiResponse<T> {
   status: "success" | "error";
   message?: string;
   data: T;
-  error?: string[];
+  error?: string[] | null;
 }
 
 // Pagination
@@ -27,13 +27,21 @@ export interface User {
   created_at?: string;
 }
 
-// Transaction Types
-export type TransactionStatus = "PENDING" | "SUCCESS" | "FLAGGED" | "BLOCKED";
+// Transaction Types - Backend returns lowercase, we normalize to uppercase for display
+export type TransactionStatus =
+  | "PENDING"
+  | "SUCCESS"
+  | "FLAGGED"
+  | "BLOCKED"
+  | "pending"
+  | "success"
+  | "flagged"
+  | "blocked";
 export type PaymentMethod = "card" | "upi" | "bank_transfer" | "wallet";
 
 export interface Transaction {
   id: string;
-  amount: number;
+  amount: number | string; // Backend may return string
   payment_method: PaymentMethod;
   device_id: string;
   status: TransactionStatus;

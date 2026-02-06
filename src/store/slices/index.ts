@@ -13,3 +13,12 @@ export {
   toggleSidebarCollapsed,
   setSidebarCollapsed,
 } from "./uiSlice";
+export {
+  default as notificationReducer,
+  setNotifications,
+  addNotification,
+  markAsRead,
+  markAllAsRead,
+  removeNotification,
+  clearAllNotifications,
+} from "./notificationSlice";

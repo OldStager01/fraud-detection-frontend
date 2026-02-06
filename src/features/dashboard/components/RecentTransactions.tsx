@@ -13,7 +13,7 @@ import {
 } from "@/components/ui";
 import { cn } from "@/utils";
 import { formatCurrency } from "../utils";
-import type { Transaction } from "@/types";
+import type { Transaction, TransactionStatus } from "@/types";
 
 dayjs.extend(relativeTime);
 
@@ -22,8 +22,21 @@ interface RecentTransactionsProps {
   isLoading?: boolean;
 }
 
-function getStatusBadgeVariant(status: Transaction["status"]) {
-  switch (status) {
+// Normalize status to uppercase
+function normalizeStatus(
+  status: TransactionStatus,
+): "SUCCESS" | "FLAGGED" | "BLOCKED" | "PENDING" {
+  return status.toUpperCase() as "SUCCESS" | "FLAGGED" | "BLOCKED" | "PENDING";
+}
+
+// Parse amount (backend may return string)
+function parseAmount(amount: number | string): number {
+  return typeof amount === "string" ? parseFloat(amount) : amount;
+}
+
+function getStatusBadgeVariant(status: TransactionStatus) {
+  const normalized = normalizeStatus(status);
+  switch (normalized) {
     case "SUCCESS":
       return "success";
     case "FLAGGED":
@@ -99,10 +112,10 @@ export default function RecentTransactions({
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-neutral-900 dark:text-neutral-100">
-                    {formatCurrency(transaction.amount)}
+                    {formatCurrency(parseAmount(transaction.amount))}
                   </span>
                   <Badge variant={getStatusBadgeVariant(transaction.status)}>
-                    {transaction.status}
+                    {normalizeStatus(transaction.status)}
                   </Badge>
                 </div>
                 <p className="text-sm text-neutral-500 dark:text-neutral-400">

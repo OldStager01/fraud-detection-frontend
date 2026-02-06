@@ -1,6 +1,8 @@
 import { Outlet } from "react-router-dom";
 import { useAppSelector } from "@/store";
 import { useGlobalShortcuts } from "@/hooks";
+import { useNotificationPolling } from "@/features/notifications";
+import { SkipLink } from "@/components/common";
 import { cn } from "@/utils";
 import { Sidebar, Header, MobileSidebar } from "./components";
 
@@ -10,8 +12,14 @@ export default function MainLayout() {
   // Register global keyboard shortcuts
   useGlobalShortcuts();
 
+  // Enable notification polling
+  useNotificationPolling(true);
+
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
+      {/* Skip Link for Accessibility */}
+      <SkipLink />
+
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
         <Sidebar />
@@ -28,7 +36,7 @@ export default function MainLayout() {
         )}
       >
         <Header />
-        <main className="p-4 md:p-6 lg:p-8">
+        <main id="main-content" className="p-4 md:p-6 lg:p-8" tabIndex={-1}>
           <Outlet />
         </main>
       </div>

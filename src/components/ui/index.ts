@@ -1,5 +1,6 @@
 export { Button, buttonVariants, type ButtonProps } from "./button";
 export { Input, type InputProps } from "./input";
+export { Textarea, type TextareaProps } from "./textarea";
 export { Label } from "./label";
 export {
   Card,
@@ -43,3 +44,25 @@ export {
   DropdownMenuRadioGroup,
 } from "./dropdown-menu";
 export { ScrollArea, ScrollBar } from "./scroll-area";
+export {
+  Select,
+  SelectGroup,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectLabel,
+  SelectItem,
+  SelectSeparator,
+} from "./select";
+export {
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
+  DialogClose,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from "./dialog";

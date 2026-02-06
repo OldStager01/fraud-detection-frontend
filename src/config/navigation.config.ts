@@ -84,7 +84,7 @@ export const breadcrumbNameMap: Record<string, string> = {
   "/transactions/new": "New Transaction",
   "/risk-analysis": "Risk Analysis",
   "/admin": "Administration",
-  "/admin/users": "Users",
+  "/admin/users": "User Management",
   "/admin/audit-logs": "Audit Logs",
   "/settings": "Settings",
   "/help": "Help & Support",

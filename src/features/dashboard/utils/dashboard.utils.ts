@@ -7,14 +7,33 @@ import type {
 } from "../types";
 import dayjs from "dayjs";
 
+// Parse amount (backend may return string)
+function parseAmount(amount: number | string): number {
+  return typeof amount === "string" ? parseFloat(amount) : amount;
+}
+
+// Normalize status to uppercase
+function normalizeStatus(status: string): string {
+  return status.toUpperCase();
+}
+
 export function calculateDashboardStats(
   transactions: Transaction[],
 ): DashboardStats {
   const total = transactions.length;
-  const successful = transactions.filter((t) => t.status === "SUCCESS").length;
-  const flagged = transactions.filter((t) => t.status === "FLAGGED").length;
-  const blocked = transactions.filter((t) => t.status === "BLOCKED").length;
-  const totalVolume = transactions.reduce((sum, t) => sum + t.amount, 0);
+  const successful = transactions.filter(
+    (t) => normalizeStatus(t.status) === "SUCCESS",
+  ).length;
+  const flagged = transactions.filter(
+    (t) => normalizeStatus(t.status) === "FLAGGED",
+  ).length;
+  const blocked = transactions.filter(
+    (t) => normalizeStatus(t.status) === "BLOCKED",
+  ).length;
+  const totalVolume = transactions.reduce(
+    (sum, t) => sum + parseAmount(t.amount),
+    0,
+  );
   const averageSpending = total > 0 ? totalVolume / total : 0;
 
   return {
@@ -45,9 +64,15 @@ export function generateChartData(
 
     data.push({
       date: date.format("MMM DD"),
-      success: dayTransactions.filter((t) => t.status === "SUCCESS").length,
-      flagged: dayTransactions.filter((t) => t.status === "FLAGGED").length,
-      blocked: dayTransactions.filter((t) => t.status === "BLOCKED").length,
+      success: dayTransactions.filter(
+        (t) => normalizeStatus(t.status) === "SUCCESS",
+      ).length,
+      flagged: dayTransactions.filter(
+        (t) => normalizeStatus(t.status) === "FLAGGED",
+      ).length,
+      blocked: dayTransactions.filter(
+        (t) => normalizeStatus(t.status) === "BLOCKED",
+      ).length,
       total: dayTransactions.length,
     });
   }
@@ -106,13 +131,14 @@ export function generateHeatmapData(
   return data;
 }
 
-export function formatCurrency(amount: number): string {
+export function formatCurrency(amount: number | string): string {
+  const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount);
+  }).format(numAmount);
 }
 
 export function formatNumber(num: number): string {
