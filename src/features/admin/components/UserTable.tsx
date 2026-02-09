@@ -1,4 +1,3 @@
-import { useState } from "react";
 import dayjs from "dayjs";
 import {
   MoreHorizontal,
@@ -19,7 +18,6 @@ import {
   AvatarFallback,
   Skeleton,
 } from "@/components/ui";
-import { cn } from "@/utils";
 import type { User } from "@/types";
 
 interface UserTableProps {

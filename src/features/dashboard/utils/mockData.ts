@@ -73,6 +73,7 @@ export function generateMockTransactions(count: number = 100): Transaction[] {
         .toISOString(),
       rules_triggered:
         status !== "SUCCESS" ? "AMOUNT_DEVIATION_HIGH,UNTRUSTED_DEVICE" : null,
+      feedback_submitted: false,
     });
   }
 

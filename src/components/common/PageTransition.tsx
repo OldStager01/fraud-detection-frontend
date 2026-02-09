@@ -33,7 +33,7 @@ export default function PageTransition({ children }: PageTransitionProps) {
       animate="animate"
       exit="exit"
       variants={pageVariants}
-      transition={pageTransition}
+      transition={pageTransition as any}
     >
       {children}
     </motion.div>

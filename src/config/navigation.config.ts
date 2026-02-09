@@ -2,8 +2,6 @@ import {
   LayoutDashboard,
   ArrowLeftRight,
   Shield,
-  Users,
-  FileText,
   Settings,
   HelpCircle,
   type LucideIcon,
@@ -44,23 +42,23 @@ export const navigationConfig: NavSection[] = [
       },
     ],
   },
-  {
-    title: "Administration",
-    items: [
-      {
-        title: "Users",
-        href: "/admin/users",
-        icon: Users,
-        roles: ["admin", "manager"],
-      },
-      {
-        title: "Audit Logs",
-        href: "/admin/audit-logs",
-        icon: FileText,
-        roles: ["admin"],
-      },
-    ],
-  },
+  // {
+  //   title: "Administration",
+  //   items: [
+  //     {
+  //       title: "Users",
+  //       href: "/admin/users",
+  //       icon: Users,
+  //       roles: ["admin", "manager"],
+  //     },
+  //     {
+  //       title: "Audit Logs",
+  //       href: "/admin/audit-logs",
+  //       icon: FileText,
+  //       roles: ["admin"],
+  //     },
+  //   ],
+  // },
   {
     title: "Settings",
     items: [

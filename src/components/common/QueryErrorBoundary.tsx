@@ -1,20 +1,17 @@
-import { ReactNode } from 'react';
-import { QueryErrorResetBoundary } from '@tanstack/react-query';
-import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary';
-import { AlertCircle, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui';
+import { ReactNode } from "react";
+import { QueryErrorResetBoundary } from "@tanstack/react-query";
+import {
+  ErrorBoundary as ReactErrorBoundary,
+  FallbackProps,
+} from "react-error-boundary";
+import { AlertCircle, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui";
 
 interface Props {
   children: ReactNode;
 }
 
-function ErrorFallback({
-  error,
-  resetErrorBoundary,
-}: {
-  error: Error;
-  resetErrorBoundary: () => void;
-}) {
+function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
   return (
     <div className="flex flex-col items-center justify-center p-8 text-center">
       <div className="h-12 w-12 rounded-full bg-danger-100 dark:bg-danger-900/30 flex items-center justify-center mb-4">
@@ -24,7 +21,9 @@ function ErrorFallback({
         Failed to load data
       </h3>
       <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4 max-w-sm">
-        {error.message || 'An error occurred while fetching the data.'}
+        {error instanceof Error
+          ? error.message
+          : "An error occurred while fetching the data."}
       </p>
       <Button onClick={resetErrorBoundary} size="sm">
         <RefreshCw className="h-4 w-4 mr-2" />

@@ -4,6 +4,7 @@ import { useAppSelector } from "@/store";
 export default function ThemeInitializer() {
   const theme = useAppSelector((state) => state.ui.theme);
 
+  // Apply the selected theme to the document root
   useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove("light", "dark");
@@ -19,6 +20,7 @@ export default function ThemeInitializer() {
     }
   }, [theme]);
 
+  // Follow system theme changes if the user has selected "system" theme
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 

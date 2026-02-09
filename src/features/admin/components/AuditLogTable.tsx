@@ -7,7 +7,7 @@ import {
   FileText,
 } from "lucide-react";
 import { Badge, Skeleton } from "@/components/ui";
-import { cn, formatShortDateTime, formatRelativeTime } from "@/utils";
+import { formatShortDateTime, formatRelativeTime } from "@/utils";
 import type { AuditLog } from "../api";
 
 interface AuditLogTableProps {
