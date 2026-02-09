@@ -18,10 +18,7 @@ import {
   RiskHeatmap,
   PeriodSelector,
   RecentTransactions,
-  calculateDashboardStats,
-  generateChartData,
-  generateRiskDistribution,
-  generateHeatmapData,
+  useAnalytics,
   formatCurrency,
   formatNumber,
   type ComparisonPeriod,
@@ -31,53 +28,53 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const [period, setPeriod] = useState<ComparisonPeriod>("7d");
 
-  const { data, isLoading } = useDashboardStats();
+  // Analytics data (aggregated server-side)
+  const { data: analytics, isLoading: analyticsLoading } = useAnalytics({
+    period,
+  });
 
-  const transactions = data?.transactions || [];
-  const userStats = data?.user_stats;
-
-  const periodDays = period === "7d" ? 7 : period === "30d" ? 30 : 90;
+  // Recent transactions (only for the table, limit 10 is fine)
+  const { data: txData, isLoading: txLoading } = useDashboardStats();
+  const recentTransactions = txData?.transactions || [];
 
   const stats = useMemo(() => {
-    if (userStats) {
+    if (!analytics) {
       return {
-        totalTransactions: userStats.total_transactions,
-        successfulTransactions: transactions.filter(
-          (t) => t.status.toUpperCase() === "SUCCESS",
-        ).length,
-        flaggedTransactions: transactions.filter(
-          (t) => t.status.toUpperCase() === "FLAGGED",
-        ).length,
-        blockedTransactions: transactions.filter(
-          (t) => t.status.toUpperCase() === "BLOCKED",
-        ).length,
-        totalVolume: userStats.total_volume,
-        averageSpending: userStats.average_spending,
-        successRate:
-          userStats.total_transactions > 0
-            ? (transactions.filter((t) => t.status.toUpperCase() === "SUCCESS")
-                .length /
-                Math.max(transactions.length, 1)) *
-              100
-            : 0,
+        totalTransactions: 0,
+        successfulTransactions: 0,
+        flaggedTransactions: 0,
+        blockedTransactions: 0,
+        totalVolume: 0,
+        averageSpending: 0,
+        successRate: 0,
         riskRate: 0,
       };
     }
-    return calculateDashboardStats(transactions);
-  }, [transactions, userStats]);
+    const s = analytics.stats;
+    return {
+      totalTransactions: s.total_transactions,
+      successfulTransactions: s.successful_transactions,
+      flaggedTransactions: s.flagged_transactions,
+      blockedTransactions: s.blocked_transactions,
+      totalVolume: s.total_volume,
+      averageSpending: s.average_spending,
+      successRate: s.success_rate,
+      riskRate: s.risk_rate,
+    };
+  }, [analytics]);
 
-  const chartData = useMemo(
-    () => generateChartData(transactions, periodDays),
-    [transactions, periodDays],
-  );
-  const riskDistribution = useMemo(
-    () => generateRiskDistribution(transactions),
-    [transactions],
-  );
-  const heatmapData = useMemo(
-    () => generateHeatmapData(transactions),
-    [transactions],
-  );
+  const chartData = analytics?.chart_data || [];
+  const riskDistribution = analytics?.risk_distribution || [];
+  const heatmapData = useMemo(() => {
+    if (!analytics?.heatmap_data) return [];
+    // Map risk_level from backend to riskLevel expected by component
+    return analytics.heatmap_data.map((cell) => ({
+      day: cell.day,
+      hour: cell.hour,
+      value: cell.value,
+      riskLevel: cell.risk_level,
+    }));
+  }, [analytics]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -123,7 +120,7 @@ export default function DashboardPage() {
               value={formatNumber(stats.totalTransactions)}
               change={12.5}
               icon={Activity}
-              isLoading={isLoading}
+              isLoading={analyticsLoading}
             />
           </motion.div>
           <motion.div variants={itemVariants}>
@@ -133,7 +130,7 @@ export default function DashboardPage() {
               change={8.2}
               icon={CheckCircle}
               iconColor="text-success-600 dark:text-success-400"
-              isLoading={isLoading}
+              isLoading={analyticsLoading}
             />
           </motion.div>
           <motion.div variants={itemVariants}>
@@ -143,7 +140,7 @@ export default function DashboardPage() {
               change={-3.1}
               icon={AlertTriangle}
               iconColor="text-warning-600 dark:text-warning-400"
-              isLoading={isLoading}
+              isLoading={analyticsLoading}
             />
           </motion.div>
           <motion.div variants={itemVariants}>
@@ -153,7 +150,7 @@ export default function DashboardPage() {
               change={2.4}
               icon={Shield}
               iconColor="text-danger-600 dark:text-danger-400"
-              isLoading={isLoading}
+              isLoading={analyticsLoading}
             />
           </motion.div>
           <motion.div variants={itemVariants}>
@@ -162,7 +159,7 @@ export default function DashboardPage() {
               value={formatCurrency(stats.totalVolume)}
               change={15.8}
               icon={DollarSign}
-              isLoading={isLoading}
+              isLoading={analyticsLoading}
             />
           </motion.div>
           <motion.div variants={itemVariants}>
@@ -171,7 +168,7 @@ export default function DashboardPage() {
               value={`${stats.successRate.toFixed(1)}%`}
               change={1.2}
               icon={TrendingUp}
-              isLoading={isLoading}
+              isLoading={analyticsLoading}
             />
           </motion.div>
         </motion.div>
@@ -183,7 +180,10 @@ export default function DashboardPage() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <TransactionVolumeChart data={chartData} isLoading={isLoading} />
+            <TransactionVolumeChart
+              data={chartData}
+              isLoading={analyticsLoading}
+            />
           </motion.div>
           <motion.div
             initial={{ opacity: 0, x: 20 }}
@@ -192,7 +192,7 @@ export default function DashboardPage() {
           >
             <RiskDistributionChart
               data={riskDistribution}
-              isLoading={isLoading}
+              isLoading={analyticsLoading}
             />
           </motion.div>
         </div>
@@ -204,7 +204,7 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <RiskHeatmap data={heatmapData} isLoading={isLoading} />
+            <RiskHeatmap data={heatmapData} isLoading={analyticsLoading} />
           </motion.div>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -212,8 +212,8 @@ export default function DashboardPage() {
             transition={{ delay: 0.25 }}
           >
             <RecentTransactions
-              transactions={transactions}
-              isLoading={isLoading}
+              transactions={recentTransactions}
+              isLoading={txLoading}
             />
           </motion.div>
         </div>

@@ -1,12 +1,12 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import dayjs from "dayjs";
 import {
   Shield,
   AlertTriangle,
   Activity,
   XCircle,
   Calendar,
+  FileDown,
 } from "lucide-react";
 import {
   BarChart,
@@ -27,6 +27,7 @@ import {
   CardHeader,
   CardTitle,
   Badge,
+  Button,
   DatePicker,
   Label,
   Select,
@@ -37,88 +38,13 @@ import {
 } from "@/components/ui";
 import { PageTransition } from "@/components/common";
 import {
-  useTransactions,
-  type TransactionFilters,
-} from "@/features/transactions";
-import {
   StatsCard,
   RiskHeatmap,
-  generateHeatmapData,
+  useAnalytics,
+  generateRiskAnalysisPDF,
   formatNumber,
+  type AnalyticsFilters,
 } from "@/features/dashboard";
-import type { Transaction } from "@/types";
-
-// Extract triggered rules from transactions
-function extractRulesData(transactions: Transaction[]) {
-  const rulesCounts: Record<string, number> = {};
-
-  transactions.forEach((txn) => {
-    if (txn.rules_triggered) {
-      const rules = txn.rules_triggered.split(",").filter(Boolean);
-      rules.forEach((rule) => {
-        rulesCounts[rule] = (rulesCounts[rule] || 0) + 1;
-      });
-    }
-  });
-
-  return Object.entries(rulesCounts)
-    .map(([name, count]) => ({
-      name: name.replace(/_/g, " "),
-      count,
-    }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 6);
-}
-
-// Get risk score distribution
-function getRiskDistribution(transactions: Transaction[]) {
-  const ranges = [
-    { range: "0-20", min: 0, max: 20, count: 0, color: "#22c55e" },
-    { range: "21-40", min: 21, max: 40, count: 0, color: "#84cc16" },
-    { range: "41-60", min: 41, max: 60, count: 0, color: "#f59e0b" },
-    { range: "61-80", min: 61, max: 80, count: 0, color: "#f97316" },
-    { range: "81-100", min: 81, max: 100, count: 0, color: "#ef4444" },
-  ];
-
-  transactions.forEach((txn) => {
-    const score = txn.risk_score ?? 0;
-    const range = ranges.find((r) => score >= r.min && score <= r.max);
-    if (range) range.count++;
-  });
-
-  return ranges;
-}
-
-// Get high-risk transactions
-function getHighRiskTransactions(transactions: Transaction[]) {
-  return transactions
-    .filter((txn) => (txn.risk_score ?? 0) >= 50)
-    .sort((a, b) => (b.risk_score ?? 0) - (a.risk_score ?? 0))
-    .slice(0, 5);
-}
-
-// Get status breakdown
-function getStatusBreakdown(transactions: Transaction[]) {
-  const success = transactions.filter(
-    (t) => t.status.toUpperCase() === "SUCCESS",
-  ).length;
-  const flagged = transactions.filter(
-    (t) => t.status.toUpperCase() === "FLAGGED",
-  ).length;
-  const blocked = transactions.filter(
-    (t) => t.status.toUpperCase() === "BLOCKED",
-  ).length;
-
-  return [
-    { name: "Success", value: success, color: "#22c55e" },
-    { name: "Flagged", value: flagged, color: "#f59e0b" },
-    { name: "Blocked", value: blocked, color: "#ef4444" },
-  ];
-}
-
-function parseAmount(amount: number | string): number {
-  return typeof amount === "string" ? parseFloat(amount) : amount;
-}
 
 type DatePreset = "7d" | "30d" | "90d" | "all" | "custom";
 
@@ -130,78 +56,74 @@ export default function RiskAnalysisPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>("all");
 
-  // Calculate date range based on preset
-  const dateRange = useMemo(() => {
-    if (datePreset === "custom") {
-      return { start_date: startDate, end_date: endDate };
+  // Build analytics filters
+  const filters: AnalyticsFilters = useMemo(() => {
+    const f: AnalyticsFilters = {};
+
+    if (datePreset === "custom" && startDate && endDate) {
+      f.start_date = startDate;
+      f.end_date = endDate;
+    } else if (datePreset !== "custom") {
+      f.period = datePreset === "all" ? "all" : datePreset;
     }
-    if (datePreset === "all") {
-      return {};
+
+    if (statusFilter !== "all") {
+      f.status = statusFilter;
     }
-    const days = datePreset === "7d" ? 7 : datePreset === "30d" ? 30 : 90;
-    return {
-      start_date: dayjs().subtract(days, "day").format("YYYY-MM-DD"),
-      end_date: dayjs().format("YYYY-MM-DD"),
-    };
-  }, [datePreset, startDate, endDate]);
 
-  // Build filters
-  const filters: TransactionFilters = useMemo(
-    () => ({
-      ...dateRange,
-      status: statusFilter !== "all" ? statusFilter : undefined,
-      payment_method:
-        paymentMethodFilter !== "all" ? paymentMethodFilter : undefined,
-      per_page: 100, // Get more for analysis
-    }),
-    [dateRange, statusFilter, paymentMethodFilter],
-  );
+    if (paymentMethodFilter !== "all") {
+      f.payment_method = paymentMethodFilter;
+    }
 
-  const { data, isLoading } = useTransactions(filters);
-  const transactions = data?.transactions || [];
+    return f;
+  }, [datePreset, startDate, endDate, statusFilter, paymentMethodFilter]);
 
-  const rulesData = useMemo(
-    () => extractRulesData(transactions),
-    [transactions],
-  );
-  const riskDistribution = useMemo(
-    () => getRiskDistribution(transactions),
-    [transactions],
-  );
-  const highRiskTxns = useMemo(
-    () => getHighRiskTransactions(transactions),
-    [transactions],
-  );
-  const statusBreakdown = useMemo(
-    () => getStatusBreakdown(transactions),
-    [transactions],
-  );
-  const heatmapData = useMemo(
-    () => generateHeatmapData(transactions),
-    [transactions],
-  );
+  const { data: analytics, isLoading } = useAnalytics(filters);
 
-  // Calculate stats
-  const totalFlagged = transactions.filter(
-    (t) => t.status.toUpperCase() === "FLAGGED",
-  ).length;
-  const totalBlocked = transactions.filter(
-    (t) => t.status.toUpperCase() === "BLOCKED",
-  ).length;
-  const avgRiskScore =
-    transactions.length > 0
-      ? transactions.reduce((sum, t) => sum + (t.risk_score ?? 0), 0) /
-        transactions.length
-      : 0;
-  const highRiskCount = transactions.filter(
-    (t) => (t.risk_score ?? 0) >= 70,
-  ).length;
+  // Transform heatmap data
+  const heatmapData = useMemo(() => {
+    if (!analytics?.heatmap_data) return [];
+    return analytics.heatmap_data.map((cell) => ({
+      day: cell.day,
+      hour: cell.hour,
+      value: cell.value,
+      riskLevel: cell.risk_level,
+    }));
+  }, [analytics]);
+
+  // Status breakdown for pie chart
+  const statusBreakdown = useMemo(() => {
+    if (!analytics) return [];
+    return [
+      {
+        name: "Success",
+        value: analytics.stats.successful_transactions,
+        color: "#22c55e",
+      },
+      {
+        name: "Flagged",
+        value: analytics.stats.flagged_transactions,
+        color: "#f59e0b",
+      },
+      {
+        name: "Blocked",
+        value: analytics.stats.blocked_transactions,
+        color: "#ef4444",
+      },
+    ];
+  }, [analytics]);
 
   const handlePresetChange = (value: DatePreset) => {
     setDatePreset(value);
     if (value !== "custom") {
       setStartDate(undefined);
       setEndDate(undefined);
+    }
+  };
+
+  const handleExportPDF = () => {
+    if (analytics) {
+      generateRiskAnalysisPDF(analytics, filters);
     }
   };
 
@@ -218,6 +140,14 @@ export default function RiskAnalysisPage() {
               Advanced fraud detection analytics and insights
             </p>
           </div>
+          <Button
+            onClick={handleExportPDF}
+            disabled={isLoading || !analytics}
+            variant="outline"
+          >
+            <FileDown className="h-4 w-4 mr-2" />
+            Export PDF
+          </Button>
         </div>
 
         {/* Filters */}
@@ -322,7 +252,7 @@ export default function RiskAnalysisPage() {
                   <p className="text-sm text-neutral-500 dark:text-neutral-400">
                     {isLoading
                       ? "Loading..."
-                      : `${transactions.length} transactions`}
+                      : `${analytics?.stats.total_transactions || 0} transactions`}
                   </p>
                 </div>
               </div>
@@ -339,27 +269,27 @@ export default function RiskAnalysisPage() {
         >
           <StatsCard
             title="Flagged Transactions"
-            value={formatNumber(totalFlagged)}
+            value={formatNumber(analytics?.stats.flagged_transactions || 0)}
             icon={AlertTriangle}
             iconColor="text-warning-600 dark:text-warning-400"
             isLoading={isLoading}
           />
           <StatsCard
             title="Blocked Transactions"
-            value={formatNumber(totalBlocked)}
+            value={formatNumber(analytics?.stats.blocked_transactions || 0)}
             icon={XCircle}
             iconColor="text-danger-600 dark:text-danger-400"
             isLoading={isLoading}
           />
           <StatsCard
             title="Avg Risk Score"
-            value={avgRiskScore.toFixed(1)}
+            value={(analytics?.stats.avg_risk_score || 0).toFixed(1)}
             icon={Activity}
             isLoading={isLoading}
           />
           <StatsCard
             title="High Risk (70+)"
-            value={formatNumber(highRiskCount)}
+            value={formatNumber(analytics?.stats.high_risk_count || 0)}
             icon={Shield}
             iconColor="text-danger-600 dark:text-danger-400"
             isLoading={isLoading}
@@ -381,7 +311,7 @@ export default function RiskAnalysisPage() {
               <CardContent>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={riskDistribution}>
+                    <BarChart data={analytics?.risk_score_ranges || []}>
                       <CartesianGrid
                         strokeDasharray="3 3"
                         className="stroke-neutral-200 dark:stroke-neutral-800"
@@ -396,9 +326,11 @@ export default function RiskAnalysisPage() {
                         }}
                       />
                       <Bar dataKey="count" name="Transactions">
-                        {riskDistribution.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
+                        {(analytics?.risk_score_ranges || []).map(
+                          (entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ),
+                        )}
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
@@ -457,13 +389,13 @@ export default function RiskAnalysisPage() {
                 <CardTitle>Top Triggered Rules</CardTitle>
               </CardHeader>
               <CardContent>
-                {rulesData.length === 0 ? (
+                {!analytics?.rules_triggered?.length ? (
                   <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">
                     No rules triggered in selected period
                   </p>
                 ) : (
                   <div className="space-y-3">
-                    {rulesData.map((rule, index) => (
+                    {analytics.rules_triggered.map((rule, index) => (
                       <div
                         key={rule.name}
                         className="flex items-center justify-between p-3 rounded-lg bg-neutral-50 dark:bg-neutral-800"
@@ -496,20 +428,20 @@ export default function RiskAnalysisPage() {
                 <CardTitle>High Risk Transactions</CardTitle>
               </CardHeader>
               <CardContent>
-                {highRiskTxns.length === 0 ? (
+                {!analytics?.high_risk_transactions?.length ? (
                   <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">
                     No high-risk transactions in selected period
                   </p>
                 ) : (
                   <div className="space-y-3">
-                    {highRiskTxns.map((txn) => (
+                    {analytics.high_risk_transactions.map((txn) => (
                       <div
                         key={txn.id}
                         className="flex items-center justify-between p-3 rounded-lg border border-danger-200 dark:border-danger-900 bg-danger-50 dark:bg-danger-950/30"
                       >
                         <div>
                           <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                            ₹{parseAmount(txn.amount).toLocaleString()}
+                            ₹{txn.amount.toLocaleString()}
                           </p>
                           <p className="text-xs text-neutral-500 dark:text-neutral-400">
                             {txn.payment_method} • {txn.id.slice(0, 8)}...
