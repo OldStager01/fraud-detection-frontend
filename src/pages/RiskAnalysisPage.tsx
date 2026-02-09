@@ -1,11 +1,12 @@
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
+import dayjs from "dayjs";
 import {
   Shield,
   AlertTriangle,
-  TrendingUp,
   Activity,
   XCircle,
+  Calendar,
 } from "lucide-react";
 import {
   BarChart,
@@ -26,9 +27,19 @@ import {
   CardHeader,
   CardTitle,
   Badge,
+  DatePicker,
+  Label,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui";
 import { PageTransition } from "@/components/common";
-import { useDashboardStats } from "@/features/transactions";
+import {
+  useTransactions,
+  type TransactionFilters,
+} from "@/features/transactions";
 import {
   StatsCard,
   RiskHeatmap,
@@ -109,8 +120,44 @@ function parseAmount(amount: number | string): number {
   return typeof amount === "string" ? parseFloat(amount) : amount;
 }
 
+type DatePreset = "7d" | "30d" | "90d" | "all" | "custom";
+
 export default function RiskAnalysisPage() {
-  const { data, isLoading } = useDashboardStats();
+  // Filter state
+  const [datePreset, setDatePreset] = useState<DatePreset>("30d");
+  const [startDate, setStartDate] = useState<string | undefined>();
+  const [endDate, setEndDate] = useState<string | undefined>();
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>("all");
+
+  // Calculate date range based on preset
+  const dateRange = useMemo(() => {
+    if (datePreset === "custom") {
+      return { start_date: startDate, end_date: endDate };
+    }
+    if (datePreset === "all") {
+      return {};
+    }
+    const days = datePreset === "7d" ? 7 : datePreset === "30d" ? 30 : 90;
+    return {
+      start_date: dayjs().subtract(days, "day").format("YYYY-MM-DD"),
+      end_date: dayjs().format("YYYY-MM-DD"),
+    };
+  }, [datePreset, startDate, endDate]);
+
+  // Build filters
+  const filters: TransactionFilters = useMemo(
+    () => ({
+      ...dateRange,
+      status: statusFilter !== "all" ? statusFilter : undefined,
+      payment_method:
+        paymentMethodFilter !== "all" ? paymentMethodFilter : undefined,
+      per_page: 100, // Get more for analysis
+    }),
+    [dateRange, statusFilter, paymentMethodFilter],
+  );
+
+  const { data, isLoading } = useTransactions(filters);
   const transactions = data?.transactions || [];
 
   const rulesData = useMemo(
@@ -150,23 +197,144 @@ export default function RiskAnalysisPage() {
     (t) => (t.risk_score ?? 0) >= 70,
   ).length;
 
+  const handlePresetChange = (value: DatePreset) => {
+    setDatePreset(value);
+    if (value !== "custom") {
+      setStartDate(undefined);
+      setEndDate(undefined);
+    }
+  };
+
   return (
     <PageTransition>
       <div className="space-y-6">
         {/* Page Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-            Risk Analysis
-          </h1>
-          <p className="text-neutral-600 dark:text-neutral-400">
-            Advanced fraud detection analytics and insights
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
+              Risk Analysis
+            </h1>
+            <p className="text-neutral-600 dark:text-neutral-400">
+              Advanced fraud detection analytics and insights
+            </p>
+          </div>
         </div>
+
+        {/* Filters */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex flex-col lg:flex-row gap-4">
+                {/* Date Preset */}
+                <div className="space-y-2">
+                  <Label className="text-xs text-neutral-500">
+                    Time Period
+                  </Label>
+                  <Select
+                    value={datePreset}
+                    onValueChange={(v) => handlePresetChange(v as DatePreset)}
+                  >
+                    <SelectTrigger className="w-full sm:w-40">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="7d">Last 7 days</SelectItem>
+                      <SelectItem value="30d">Last 30 days</SelectItem>
+                      <SelectItem value="90d">Last 90 days</SelectItem>
+                      <SelectItem value="all">All time</SelectItem>
+                      <SelectItem value="custom">Custom range</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Custom Date Range */}
+                {datePreset === "custom" && (
+                  <>
+                    <div className="space-y-2">
+                      <Label className="text-xs text-neutral-500">
+                        Start Date
+                      </Label>
+                      <DatePicker
+                        value={startDate}
+                        onChange={setStartDate}
+                        placeholder="From"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs text-neutral-500">
+                        End Date
+                      </Label>
+                      <DatePicker
+                        value={endDate}
+                        onChange={setEndDate}
+                        placeholder="To"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* Status Filter */}
+                <div className="space-y-2">
+                  <Label className="text-xs text-neutral-500">Status</Label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-full sm:w-36">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="SUCCESS">Success</SelectItem>
+                      <SelectItem value="FLAGGED">Flagged</SelectItem>
+                      <SelectItem value="BLOCKED">Blocked</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Payment Method Filter */}
+                <div className="space-y-2">
+                  <Label className="text-xs text-neutral-500">
+                    Payment Method
+                  </Label>
+                  <Select
+                    value={paymentMethodFilter}
+                    onValueChange={setPaymentMethodFilter}
+                  >
+                    <SelectTrigger className="w-full sm:w-40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Methods</SelectItem>
+                      <SelectItem value="card">Card</SelectItem>
+                      <SelectItem value="upi">UPI</SelectItem>
+                      <SelectItem value="bank_transfer">
+                        Bank Transfer
+                      </SelectItem>
+                      <SelectItem value="wallet">Wallet</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Results count */}
+                <div className="flex items-end">
+                  <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                    {isLoading
+                      ? "Loading..."
+                      : `${transactions.length} transactions`}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {/* Stats Row */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
         >
           <StatsCard
@@ -282,7 +450,7 @@ export default function RiskAnalysisPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.15 }}
           >
             <Card>
               <CardHeader>
@@ -291,7 +459,7 @@ export default function RiskAnalysisPage() {
               <CardContent>
                 {rulesData.length === 0 ? (
                   <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">
-                    No rules triggered yet
+                    No rules triggered in selected period
                   </p>
                 ) : (
                   <div className="space-y-3">
@@ -321,7 +489,7 @@ export default function RiskAnalysisPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
+            transition={{ delay: 0.2 }}
           >
             <Card>
               <CardHeader>
@@ -330,7 +498,7 @@ export default function RiskAnalysisPage() {
               <CardContent>
                 {highRiskTxns.length === 0 ? (
                   <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">
-                    No high-risk transactions found
+                    No high-risk transactions in selected period
                   </p>
                 ) : (
                   <div className="space-y-3">
@@ -368,7 +536,7 @@ export default function RiskAnalysisPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.25 }}
         >
           <RiskHeatmap data={heatmapData} isLoading={isLoading} />
         </motion.div>

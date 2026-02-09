@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
@@ -14,11 +14,16 @@ import { getErrorMessage } from "@/types";
 
 export function useNotifications() {
   const dispatch = useAppDispatch();
+  const isFetchingRef = useRef(false);
   const { notifications, unreadCount, lastFetched, isLoading } = useAppSelector(
     (state) => state.notifications,
   );
 
   const fetchNotifications = useCallback(async () => {
+    // Prevent duplicate concurrent calls
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+
     try {
       dispatch(setLoading(true));
       const data = await notificationsApi.getNotifications();
@@ -31,6 +36,8 @@ export function useNotifications() {
     } catch (error) {
       console.error("Failed to fetch notifications:", getErrorMessage(error));
       dispatch(setLoading(false));
+    } finally {
+      isFetchingRef.current = false;
     }
   }, [dispatch]);
 

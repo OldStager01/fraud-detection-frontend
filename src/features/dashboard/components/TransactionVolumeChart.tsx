@@ -28,7 +28,7 @@ export default function TransactionVolumeChart({
 }: TransactionVolumeChartProps) {
   if (isLoading) {
     return (
-      <Card>
+      <Card className="min-h-[340px]">
         <CardHeader>
           <Skeleton className="h-6 w-40" />
         </CardHeader>
@@ -40,7 +40,7 @@ export default function TransactionVolumeChart({
   }
 
   return (
-    <Card>
+    <Card className="min-h-[340px]">
       <CardHeader>
         <CardTitle>Transaction Volume</CardTitle>
       </CardHeader>

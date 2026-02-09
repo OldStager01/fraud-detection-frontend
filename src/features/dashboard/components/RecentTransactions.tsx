@@ -1,7 +1,5 @@
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
 import {
   Card,
   CardContent,
@@ -11,11 +9,9 @@ import {
   Button,
   Skeleton,
 } from "@/components/ui";
-import { cn } from "@/utils";
+import { cn, formatRelativeTime } from "@/utils";
 import { formatCurrency } from "../utils";
 import type { Transaction, TransactionStatus } from "@/types";
-
-dayjs.extend(relativeTime);
 
 interface RecentTransactionsProps {
   transactions: Transaction[];
@@ -69,7 +65,7 @@ export default function RecentTransactions({
 }: RecentTransactionsProps) {
   if (isLoading) {
     return (
-      <Card>
+      <Card className="min-h-[280px]">
         <CardHeader className="flex flex-row items-center justify-between">
           <Skeleton className="h-6 w-40" />
           <Skeleton className="h-8 w-24" />
@@ -92,7 +88,7 @@ export default function RecentTransactions({
   }
 
   return (
-    <Card>
+    <Card className="min-h-[280px]">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Recent Transactions</CardTitle>
         <Button variant="ghost" size="sm" asChild>
@@ -120,7 +116,7 @@ export default function RecentTransactions({
                 </div>
                 <p className="text-sm text-neutral-500 dark:text-neutral-400">
                   {getPaymentMethodLabel(transaction.payment_method)} •{" "}
-                  {dayjs(transaction.created_at).fromNow()}
+                  {formatRelativeTime(transaction.created_at)}
                 </p>
               </div>
               <div className="text-right">

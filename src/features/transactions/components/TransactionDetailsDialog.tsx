@@ -1,4 +1,3 @@
-import dayjs from "dayjs";
 import { Shield, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
 import {
   Dialog,
@@ -8,7 +7,7 @@ import {
   Badge,
   Separator,
 } from "@/components/ui";
-import { cn } from "@/utils";
+import { cn, formatDateTime } from "@/utils";
 import { formatCurrency } from "@/features/dashboard";
 import type { Transaction, TransactionStatus } from "@/types";
 
@@ -184,7 +183,7 @@ export default function TransactionDetailsDialog({
                 Date & Time
               </span>
               <p className="text-neutral-900 dark:text-neutral-100">
-                {dayjs(transaction.created_at).format("MMM DD, YYYY HH:mm")}
+                {formatDateTime(transaction.created_at)}
               </p>
             </div>
           </div>

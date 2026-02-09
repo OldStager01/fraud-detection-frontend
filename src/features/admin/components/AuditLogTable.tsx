@@ -1,4 +1,3 @@
-import dayjs from "dayjs";
 import {
   AlertTriangle,
   CheckCircle,
@@ -8,7 +7,7 @@ import {
   FileText,
 } from "lucide-react";
 import { Badge, Skeleton } from "@/components/ui";
-import { cn } from "@/utils";
+import { cn, formatShortDateTime, formatRelativeTime } from "@/utils";
 import type { AuditLog } from "../api";
 
 interface AuditLogTableProps {
@@ -99,10 +98,10 @@ export default function AuditLogTable({
           </div>
           <div className="shrink-0 text-right">
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              {dayjs(log.created_at).format("MMM DD, HH:mm")}
+              {formatShortDateTime(log.created_at)}
             </p>
             <p className="text-xs text-neutral-400 dark:text-neutral-500">
-              {dayjs(log.created_at).fromNow()}
+              {formatRelativeTime(log.created_at)}
             </p>
           </div>
         </div>

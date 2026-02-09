@@ -1,5 +1,4 @@
 import { useState } from "react";
-import dayjs from "dayjs";
 import { MoreHorizontal, Eye, MessageSquare, ArrowUpDown } from "lucide-react";
 import {
   Button,
@@ -10,7 +9,7 @@ import {
   DropdownMenuTrigger,
   Skeleton,
 } from "@/components/ui";
-import { cn } from "@/utils";
+import { cn, formatDateTime } from "@/utils";
 import { formatCurrency } from "@/features/dashboard";
 import type { Transaction, TransactionStatus } from "@/types";
 
@@ -211,7 +210,7 @@ export default function TransactionTable({
               </td>
               <td className="py-3 px-4">
                 <span className="text-sm text-neutral-600 dark:text-neutral-400">
-                  {dayjs(transaction.created_at).format("MMM DD, YYYY HH:mm")}
+                  {formatDateTime(transaction.created_at)}
                 </span>
               </td>
               <td className="py-3 px-4 text-right">
@@ -229,12 +228,14 @@ export default function TransactionTable({
                       <Eye className="mr-2 h-4 w-4" />
                       View Details
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => onSubmitFeedback(transaction)}
-                    >
-                      <MessageSquare className="mr-2 h-4 w-4" />
-                      Submit Feedback
-                    </DropdownMenuItem>
+                    {!transaction.feedback_submitted && (
+                      <DropdownMenuItem
+                        onClick={() => onSubmitFeedback(transaction)}
+                      >
+                        <MessageSquare className="mr-2 h-4 w-4" />
+                        Submit Feedback
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </td>

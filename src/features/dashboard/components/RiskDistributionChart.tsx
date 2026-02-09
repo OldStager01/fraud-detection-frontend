@@ -26,7 +26,7 @@ export default function RiskDistributionChart({
 }: RiskDistributionChartProps) {
   if (isLoading) {
     return (
-      <Card>
+      <Card className="min-h-[340px]">
         <CardHeader>
           <Skeleton className="h-6 w-40" />
         </CardHeader>
@@ -40,7 +40,7 @@ export default function RiskDistributionChart({
   const total = data.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <Card>
+    <Card className="min-h-[340px]">
       <CardHeader>
         <CardTitle>Risk Distribution</CardTitle>
       </CardHeader>
