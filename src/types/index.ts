@@ -49,6 +49,7 @@ export interface Transaction {
   ip_address: string;
   created_at: string;
   rules_triggered: string | null;
+  feedback_submitted: boolean;
 }
 
 // User Stats

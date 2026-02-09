@@ -28,7 +28,7 @@ export default function StatsCard({
 }: StatsCardProps) {
   if (isLoading) {
     return (
-      <Card>
+      <Card className="min-h-[120px]">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="space-y-2 flex-1">
@@ -48,7 +48,7 @@ export default function StatsCard({
   const isNeutral = change === undefined || change === 0;
 
   return (
-    <Card className="hover:shadow-soft-lg transition-shadow duration-200">
+    <Card className="hover:shadow-soft-lg transition-shadow duration-200 min-h-[120px]">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">

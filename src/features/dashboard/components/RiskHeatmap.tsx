@@ -22,7 +22,7 @@ export default function RiskHeatmap({
 }: RiskHeatmapProps) {
   if (isLoading) {
     return (
-      <Card>
+      <Card className="min-h-[280px]">
         <CardHeader>
           <Skeleton className="h-6 w-40" />
         </CardHeader>
@@ -58,7 +58,7 @@ export default function RiskHeatmap({
   };
 
   return (
-    <Card>
+    <Card className="min-h-[280px]">
       <CardHeader>
         <CardTitle>Risk Heatmap (by Day & Hour)</CardTitle>
       </CardHeader>

@@ -11,7 +11,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui";
-import { useNotifications, useNotificationPolling } from "../hooks";
+import { useNotifications } from "../hooks";
 import NotificationItem from "./NotificationItem";
 import type { Notification } from "../types";
 
@@ -25,8 +25,8 @@ export default function NotificationCenter() {
     markAllAsRead,
     deleteNotification,
     clearAll,
+    fetchNotifications,
   } = useNotifications();
-  const { refetch } = useNotificationPolling();
 
   const handleNotificationClick = (notification: Notification) => {
     if (notification.data?.transaction_id) {
@@ -68,7 +68,7 @@ export default function NotificationCenter() {
                   variant="ghost"
                   size="icon"
                   className="h-7 w-7"
-                  onClick={refetch}
+                  onClick={fetchNotifications}
                   disabled={isLoading}
                 >
                   {isLoading ? (

@@ -66,3 +66,4 @@ export {
   DialogTitle,
   DialogDescription,
 } from "./dialog";
+export { DatePicker } from "./date-picker";

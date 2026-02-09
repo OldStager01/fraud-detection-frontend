@@ -93,7 +93,9 @@ export default function CreateTransactionDialog({
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount (₹)</Label>
+            <Label htmlFor="amount" required>
+              Amount (₹)
+            </Label>
             <Input
               id="amount"
               type="number"
@@ -115,7 +117,9 @@ export default function CreateTransactionDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="payment_method">Payment Method</Label>
+            <Label htmlFor="payment_method" required>
+              Payment Method
+            </Label>
             <Controller
               name="payment_method"
               control={control}

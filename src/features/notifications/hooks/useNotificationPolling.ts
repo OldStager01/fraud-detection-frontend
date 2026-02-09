@@ -4,7 +4,7 @@ import { useAppSelector } from "@/store";
 import { useNotifications } from "./useNotifications";
 import type { Notification } from "../types";
 
-const POLLING_INTERVAL = 30000; // 30 seconds
+const POLLING_INTERVAL = 10000; // 30 seconds
 
 export function useNotificationPolling(enabled: boolean = true) {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
