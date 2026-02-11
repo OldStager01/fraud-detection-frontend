@@ -44,10 +44,6 @@ export default function LoginPage() {
             <LoginForm />
           </CardContent>
         </Card>
-
-        <p className="text-center text-xs text-neutral-500 dark:text-neutral-400 mt-6">
-          Protected by enterprise-grade security
-        </p>
       </div>
     </div>
   );

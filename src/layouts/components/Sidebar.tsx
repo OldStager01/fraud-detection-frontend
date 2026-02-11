@@ -97,14 +97,22 @@ export default function Sidebar() {
             collapsed && "justify-center px-2",
           )}
         >
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600">
-              <Shield className="h-5 w-5 text-white" />
-            </div>
-            {!collapsed && (
-              <span className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
-                FraudGuard
-              </span>
+          <Link
+            to="/dashboard"
+            className="flex items-center justify-center w-full"
+          >
+            {collapsed ? (
+              <img
+                src="/logo_s.png"
+                alt="FraudGuard"
+                className="h-20 rounded-lg object-contain"
+              />
+            ) : (
+              <img
+                src="/logo.png"
+                alt="FraudGuard"
+                className="h-20 rounded-lg object-contain"
+              />
             )}
           </Link>
         </div>

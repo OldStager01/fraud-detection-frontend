@@ -98,18 +98,17 @@ export default function MobileSidebar() {
       <aside className="fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-neutral-900 lg:hidden animate-slide-up">
         <div className="flex h-full flex-col">
           {/* Header */}
-          <div className="flex h-16 items-center justify-between border-b border-neutral-200 dark:border-neutral-800 px-4">
+          <div className="flex h-20 items-center justify-between border-b border-neutral-200 dark:border-neutral-800 px-4">
             <Link
               to="/dashboard"
-              className="flex items-center gap-2"
+              className="flex items-center justify-center gap-2 flex-1"
               onClick={handleClose}
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600">
-                <Shield className="h-5 w-5 text-white" />
-              </div>
-              <span className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
-                FraudGuard
-              </span>
+              <img
+                src="/logo.png"
+                alt="FraudGuard"
+                className="h-20 rounded-lg object-contain"
+              />
             </Link>
             <Button variant="ghost" size="icon" onClick={handleClose}>
               <X className="h-5 w-5" />

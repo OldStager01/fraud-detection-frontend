@@ -31,8 +31,8 @@ export function useKeyboardShortcuts() {
       description: "Go to Dashboard",
     },
     {
-      key: "t",
-      ctrlKey: true,
+      key: "x",
+      ctrlKey: false,
       shiftKey: true,
       action: () => navigate("/transactions"),
       description: "Go to Transactions",

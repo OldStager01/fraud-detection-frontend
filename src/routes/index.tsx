@@ -8,6 +8,7 @@ import {
   TransactionsPage,
   RiskAnalysisPage,
   SettingsPage,
+  HelpSupportPage,
   NotFoundPage,
   UsersPage,
   AuditLogsPage,
@@ -64,6 +65,10 @@ export const router = createBrowserRouter([
       {
         path: "settings",
         element: <SettingsPage />,
+      },
+      {
+        path: "help",
+        element: <HelpSupportPage />,
       },
       // Admin routes
       {
