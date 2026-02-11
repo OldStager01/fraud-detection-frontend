@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Shield, X } from "lucide-react";
+import { X } from "lucide-react";
 import { cn } from "@/utils";
 import { navigationConfig, type NavItem } from "@/config";
 import { useAuth } from "@/features/auth/hooks";

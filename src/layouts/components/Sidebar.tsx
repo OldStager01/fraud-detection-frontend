@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Shield, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/utils";
 import { navigationConfig, type NavItem } from "@/config";
 import { useAuth } from "@/features/auth/hooks";
